@@ -22,6 +22,8 @@ futures = { workspace = true }
 ipnetwork = { workspace = true }
 libc = "0.2"
 log = { workspace = true }
+tracing = { workspace = true }
+once_cell = { workspace = true }
 parking_lot = "0.12.0"
 rand = { workspace = true }
 talpid-routing = { path = "../talpid-routing" }
