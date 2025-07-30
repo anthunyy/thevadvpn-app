@@ -81,6 +81,7 @@ android {
             signingConfig = signingConfigs.findByName(SigningConfigs.RELEASE)
             isMinifyEnabled = true
             isShrinkResources = true
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -96,6 +97,7 @@ android {
             applicationIdSuffix = ".leakcanary"
             matchingFallbacks += BuildTypes.DEBUG
         }
+        getByName(BuildTypes.DEBUG) { isPseudoLocalesEnabled = true }
     }
 
     flavorDimensions += FlavorDimensions.BILLING
