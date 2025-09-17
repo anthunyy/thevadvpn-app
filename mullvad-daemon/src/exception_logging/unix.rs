@@ -1,14 +1,21 @@
 //! Install signal handlers to catch critical program faults and log them. See [`enable`].
 
 use libc::siginfo_t;
-use nix::sys::signal::{SaFlags, SigAction, SigHandler, SigSet, Signal, sigaction};
+use nix::{
+    fcntl::OFlag,
+    sys::{
+        signal::{SaFlags, SigAction, SigHandler, SigSet, Signal, sigaction},
+        stat::Mode,
+    },
+};
 
 use core::fmt;
 use std::{
     backtrace::Backtrace,
     env,
-    ffi::{CString, c_int, c_void},
-    os::fd::{FromRawFd, RawFd},
+    ffi::{c_int, c_void},
+    os::fd::{FromRawFd, IntoRawFd, RawFd},
+    path::PathBuf,
     sync::{
         Once, OnceLock,
         atomic::{AtomicBool, Ordering},
@@ -16,7 +23,9 @@ use std::{
 };
 
 /// Write fault to this file.
-static LOG_FILE_PATH: OnceLock<CString> = OnceLock::new();
+// TODO: Turn this into a CString again. We can't have anything LOG_FILE_PATH related allocate
+// during exception handling ..
+static LOG_FILE_PATH: OnceLock<PathBuf> = OnceLock::new();
 
 /// If true, the signal-handler will log a backtrace when triggered.
 ///
@@ -49,7 +58,7 @@ const FAULT_SIGNALS: [Signal; 5] = [
 /// Set the file path used for fault handler logging.
 ///
 /// Panics if called more than once.
-pub fn set_log_file(file_path: impl Into<CString>) {
+pub fn set_log_file(file_path: impl Into<PathBuf>) {
     if let Err(_file_path) = LOG_FILE_PATH.set(file_path.into()) {
         panic!("set_log_file may not be called more than once");
     }
@@ -157,19 +166,17 @@ fn log_fault_to_file_and_stdout(signum: c_int) -> Result<(), FaultHandlerErr> {
     // SIGNAL-SAFETY: OnceLock::get is atomic and non-blocking.
     if let Some(log_file_path) = LOG_FILE_PATH.get() {
         let mut log_file: LibcWriter = {
-            let open_flags = libc::O_WRONLY | libc::O_APPEND;
-
+            let open_flags = OFlag::O_WRONLY | OFlag::O_APPEND;
+            let mode = Mode::S_IWUSR;
             // This file remains open until `_exit` is called by `fault_handler`.
             // SIGNAL-SAFETY: This function is listed in `man 7 signal-safety`.
-            // SAFETY: the path is a null-terminated string.
-            let result_code = unsafe { libc::open(log_file_path.as_ptr(), open_flags) };
-
-            match result_code {
+            match nix::fcntl::open(log_file_path, open_flags, mode) {
                 // `open` returns -1 on failure.
-                ..0 => return Err(FaultHandlerErr::Open),
+                Err(_errno) => return Err(FaultHandlerErr::Open),
 
                 // SAFETY: `fd` is an open file descriptor.
-                fd => unsafe { LibcWriter::from_raw_fd(fd) },
+                // TODO: Don't do this. Use OwnedFd instead.
+                Ok(fd) => unsafe { LibcWriter::from_raw_fd(fd.into_raw_fd()) },
             }
         };
 
