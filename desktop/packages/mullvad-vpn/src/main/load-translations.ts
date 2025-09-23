@@ -7,7 +7,7 @@ import log from '../shared/logging';
 
 const SOURCE_LANGUAGE = 'en';
 const PATH_PREFIX = process.env.NODE_ENV === 'development' ? '../' : '';
-const LOCALES_DIR = path.resolve(__dirname, `${PATH_PREFIX}locales`);
+const LOCALES_DIR = path.resolve(import.meta.dirname, `${PATH_PREFIX}locales`);
 
 export function loadTranslations(
   currentLocale: string,
