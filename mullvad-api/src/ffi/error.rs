@@ -1,7 +1,9 @@
 // TODO: Remove me when mullvad-api no longer allows undocumented_unsafe_blocks.
 #![warn(clippy::undocumented_unsafe_blocks)]
 use crate::rest;
-use std::ffi::{CStr, CString, NulError};
+use core::ffi::CStr;
+use core::ptr;
+use std::ffi::{CString, NulError};
 
 #[derive(Debug, PartialEq)]
 #[repr(C)]
@@ -23,6 +25,7 @@ pub struct MullvadApiError {
 }
 
 impl MullvadApiError {
+    /// Creates a new MullvadApiError from an abitrary error.
     pub fn new(kind: MullvadApiErrorKind, error: &dyn std::error::Error) -> Result<Self, NulError> {
         let description = CString::new(format!("{error:?}: {error}"))?;
         let error = Self::with_str(kind, &description);
@@ -34,6 +37,7 @@ impl MullvadApiError {
             .expect("rest::Error messages should not contain an interior nul-byte.")
     }
 
+    /// Creates a new MullvadApiError with an arbitrary description.
     pub fn with_str(kind: MullvadApiErrorKind, description: &CStr) -> Self {
         let description = CString::from(description);
         Self {
@@ -44,11 +48,12 @@ impl MullvadApiError {
 
     pub fn ok() -> MullvadApiError {
         Self {
-            description: std::ptr::null_mut(),
+            description: ptr::null_mut(),
             kind: MullvadApiErrorKind::NoError,
         }
     }
 
+    /// panic if `self` indicates that an error occured.
     pub fn unwrap(&self) {
         if !matches!(self.kind, MullvadApiErrorKind::NoError) {
             // SAFETY: `self.description` was initialized using `CString::into_raw`.
