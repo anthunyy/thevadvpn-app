@@ -85,7 +85,7 @@ impl FfiClient {
 
         runtime_builder.worker_threads(2).enable_all();
         let tokio_runtime = runtime_builder.build().map_err(|err| {
-            MullvadApiError::new(MullvadApiErrorKind::AsyncRuntimeInitialization, &err)
+            MullvadApiError::new(MullvadApiErrorKind::AsyncRuntimeInitialization, &err).unwrap()
         })?;
 
         // It is imperative that the REST runtime is created within an async context, otherwise

@@ -1,7 +1,7 @@
 // TODO: Remove me when mullvad-api no longer allows undocumented_unsafe_blocks.
 #![warn(clippy::undocumented_unsafe_blocks)]
 use crate::rest;
-use std::ffi::{CStr, CString};
+use std::ffi::{CStr, CString, NulError};
 
 #[derive(Debug, PartialEq)]
 #[repr(C)]
@@ -23,13 +23,15 @@ pub struct MullvadApiError {
 }
 
 impl MullvadApiError {
-    pub fn new(kind: MullvadApiErrorKind, error: &dyn std::error::Error) -> Self {
-        let description = CString::new(format!("{error:?}: {error}")).unwrap_or_default();
-        Self::with_str(kind, &description)
+    pub fn new(kind: MullvadApiErrorKind, error: &dyn std::error::Error) -> Result<Self, NulError> {
+        let description = CString::new(format!("{error:?}: {error}"))?;
+        let error = Self::with_str(kind, &description);
+        Ok(error)
     }
 
     pub fn api_err(error: rest::Error) -> Self {
         Self::new(MullvadApiErrorKind::BadResponse, &error)
+            .expect("rest::Error messages should not contain an interior nul-byte.")
     }
 
     pub fn with_str(kind: MullvadApiErrorKind, description: &CStr) -> Self {
