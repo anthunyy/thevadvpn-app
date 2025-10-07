@@ -68,7 +68,7 @@ impl FfiClient {
         let api_address: SocketAddr = addr_str.parse().map_err(|_| {
             MullvadApiError::with_str(
                 MullvadApiErrorKind::SocketAddressParsing,
-                "Failed to parse API socket address",
+                c"Failed to parse API socket address",
             )
         })?;
 
@@ -398,7 +398,7 @@ pub unsafe extern "C" fn mullvad_api_create_account(
             let Ok(account) = CString::new(new_account) else {
                 return MullvadApiError::with_str(
                     MullvadApiErrorKind::BadResponse,
-                    "Account number string c ontained null bytes",
+                    c"Account number string c ontained null bytes",
                 );
             };
 
@@ -456,7 +456,7 @@ unsafe fn string_from_raw_ptr(ptr: *const libc::c_char) -> Result<String, Mullva
         .map_err(|_| {
             MullvadApiError::with_str(
                 MullvadApiErrorKind::StringParsing,
-                "Failed to parse UTF-8 string",
+                c"Failed to parse UTF-8 string",
             )
         })?
         .to_owned())

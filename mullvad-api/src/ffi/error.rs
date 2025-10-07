@@ -1,5 +1,5 @@
 use crate::rest;
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 
 #[derive(Debug, PartialEq)]
 #[repr(C)]
@@ -23,18 +23,15 @@ pub struct MullvadApiError {
 impl MullvadApiError {
     pub fn new(kind: MullvadApiErrorKind, error: &dyn std::error::Error) -> Self {
         let description = CString::new(format!("{error:?}: {error}")).unwrap_or_default();
-        Self {
-            description: description.into_raw(),
-            kind,
-        }
+        Self::with_str(kind, &description)
     }
 
     pub fn api_err(error: rest::Error) -> Self {
         Self::new(MullvadApiErrorKind::BadResponse, &error)
     }
 
-    pub fn with_str(kind: MullvadApiErrorKind, description: &str) -> Self {
-        let description = CString::new(description).unwrap_or_default();
+    pub fn with_str(kind: MullvadApiErrorKind, description: &CStr) -> Self {
+        let description = CString::from(description);
         Self {
             description: description.into_raw(),
             kind,
