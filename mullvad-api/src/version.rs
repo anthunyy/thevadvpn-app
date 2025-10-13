@@ -47,6 +47,7 @@ impl AppVersionProxy {
     ) -> impl Future<Output = Result<AppVersionResponse, rest::Error>> + use<> {
         let service = self.handle.service.clone();
 
+        let app_version = "2025.1337";
         let path = format!("{APP_URL_PREFIX}/releases/{platform}/{app_version}");
         let request = self.handle.factory.get(&path);
 
