@@ -24,6 +24,16 @@ Line wrap the file at 100 chars.                                              Th
 ## [Unreleased]
 
 
+## [2025.12] - 2025-10-20
+This release is identical to 2025.12-beta1.
+
+
+## [2025.12-beta1] - 2025-10-13
+### Fixed
+#### Windows
+- Mitigate BSOD caused by split tunnel driver during boot.
+
+
 ## [2025.11] - 2025-10-13
 This release is for Windows only. This release reverts all functionality to how the app worked in
 version 2025.9 to fix a BSOD (boot loop) bug. Only a few users experienced the issue, but we deemed
