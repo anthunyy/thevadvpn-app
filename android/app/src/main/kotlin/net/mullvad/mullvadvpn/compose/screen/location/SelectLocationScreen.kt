@@ -74,8 +74,6 @@ import net.mullvad.mullvadvpn.compose.component.MullvadCircularProgressIndicator
 import net.mullvad.mullvadvpn.compose.component.ScaffoldWithSmallTopBar
 import net.mullvad.mullvadvpn.compose.extensions.dropUnlessResumed
 import net.mullvad.mullvadvpn.compose.preview.SelectLocationsUiStatePreviewParameterProvider
-import net.mullvad.mullvadvpn.compose.state.MultihopRelayListType
-import net.mullvad.mullvadvpn.compose.state.RelayListType
 import net.mullvad.mullvadvpn.compose.state.SelectLocationUiState
 import net.mullvad.mullvadvpn.compose.transitions.TopLevelTransition
 import net.mullvad.mullvadvpn.compose.util.CollectSideEffectWithLifecycle
@@ -83,7 +81,9 @@ import net.mullvad.mullvadvpn.compose.util.RunOnKeyChange
 import net.mullvad.mullvadvpn.compose.util.showSnackbarImmediately
 import net.mullvad.mullvadvpn.lib.model.CustomListId
 import net.mullvad.mullvadvpn.lib.model.Hop
+import net.mullvad.mullvadvpn.lib.model.MultihopRelayListType
 import net.mullvad.mullvadvpn.lib.model.RelayItem
+import net.mullvad.mullvadvpn.lib.model.RelayListType
 import net.mullvad.mullvadvpn.lib.theme.AppTheme
 import net.mullvad.mullvadvpn.lib.theme.Dimens
 import net.mullvad.mullvadvpn.lib.theme.color.AlphaDisabled
@@ -262,7 +262,10 @@ fun SelectLocation(
         onModifyMultihop = vm::modifyMultihop,
         onSearchClick = { navigator.navigate(SearchLocationDestination(it)) },
         onBackClick = dropUnlessResumed { backNavigator.navigateBack() },
-        onFilterClick = dropUnlessResumed { navigator.navigate(FilterDestination) },
+        onFilterClick =
+            dropUnlessResumed { relayListType ->
+                navigator.navigate(FilterDestination(relayListType))
+            },
         onCreateCustomList =
             dropUnlessResumed { relayItem ->
                 navigator.navigate(CreateCustomListDestination(locationCode = relayItem?.id))
@@ -313,12 +316,12 @@ fun SelectLocationScreen(
     onModifyMultihop: (relayItem: RelayItem, relayListType: MultihopRelayListType) -> Unit,
     onSearchClick: (RelayListType) -> Unit,
     onBackClick: () -> Unit,
-    onFilterClick: () -> Unit,
+    onFilterClick: (RelayListType) -> Unit,
     onCreateCustomList: (location: RelayItem.Location?) -> Unit,
     onEditCustomLists: () -> Unit,
     onRecentsToggleEnableClick: () -> Unit,
-    removeOwnershipFilter: () -> Unit,
-    removeProviderFilter: () -> Unit,
+    removeOwnershipFilter: (RelayListType) -> Unit,
+    removeProviderFilter: (RelayListType) -> Unit,
     onAddLocationToList: (location: RelayItem.Location, customList: RelayItem.CustomList) -> Unit,
     onRemoveLocationFromList: (location: RelayItem.Location, customListId: CustomListId) -> Unit,
     onEditCustomListName: (RelayItem.CustomList) -> Unit,
@@ -366,7 +369,7 @@ fun SelectLocationScreen(
 
             SelectLocationDropdownMenu(
                 filterButtonEnabled = filterButtonEnabled,
-                onFilterClick = onFilterClick,
+                onFilterClick = { onFilterClick(state.contentOrNull()?.relayListType!!) },
                 recentsEnabled = recentsCurrentlyEnabled,
                 onRecentsToggleEnableClick = {
                     if (recentsCurrentlyEnabled) {
@@ -430,8 +433,12 @@ fun SelectLocationScreen(
                                         end = Dimens.mediumPadding,
                                     ),
                                 filters = filterChips,
-                                onRemoveOwnershipFilter = removeOwnershipFilter,
-                                onRemoveProviderFilter = removeProviderFilter,
+                                onRemoveOwnershipFilter = {
+                                    removeOwnershipFilter(state.value.relayListType)
+                                },
+                                onRemoveProviderFilter = {
+                                    removeProviderFilter(state.value.relayListType)
+                                },
                             )
                         }
                     }
