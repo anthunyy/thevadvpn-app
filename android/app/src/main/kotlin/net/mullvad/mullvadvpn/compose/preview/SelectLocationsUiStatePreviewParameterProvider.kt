@@ -15,7 +15,7 @@ class SelectLocationsUiStatePreviewParameterProvider :
         sequenceOf(
             Lc.Loading(Unit),
             SelectLocationUiState(
-                    filterChips = emptyList(),
+                    filterChips = emptyMap(),
                     multihopEnabled = false,
                     relayListType = RelayListType.Single,
                     isSearchButtonEnabled = true,
@@ -25,9 +25,12 @@ class SelectLocationsUiStatePreviewParameterProvider :
                 .toLc(),
             SelectLocationUiState(
                     filterChips =
-                        listOf(
-                            FilterChip.Ownership(ownership = ModelOwnership.Rented),
-                            FilterChip.Provider(PROVIDER_COUNT),
+                        mapOf(
+                            RelayListType.Single to
+                                listOf(
+                                    FilterChip.Ownership(ownership = ModelOwnership.Rented),
+                                    FilterChip.Provider(PROVIDER_COUNT),
+                                )
                         ),
                     multihopEnabled = false,
                     relayListType = RelayListType.Single,
@@ -37,7 +40,7 @@ class SelectLocationsUiStatePreviewParameterProvider :
                 )
                 .toLc(),
             SelectLocationUiState(
-                    filterChips = emptyList(),
+                    filterChips = emptyMap(),
                     multihopEnabled = true,
                     relayListType = RelayListType.Multihop(MultihopRelayListType.ENTRY),
                     isSearchButtonEnabled = true,
@@ -47,9 +50,12 @@ class SelectLocationsUiStatePreviewParameterProvider :
                 .toLc(),
             SelectLocationUiState(
                     filterChips =
-                        listOf(
-                            FilterChip.Ownership(ownership = ModelOwnership.MullvadOwned),
-                            FilterChip.Provider(PROVIDER_COUNT),
+                        mapOf(
+                            RelayListType.Multihop(MultihopRelayListType.ENTRY) to
+                                listOf(
+                                    FilterChip.Ownership(ownership = ModelOwnership.MullvadOwned),
+                                    FilterChip.Provider(PROVIDER_COUNT),
+                                )
                         ),
                     multihopEnabled = true,
                     relayListType = RelayListType.Multihop(MultihopRelayListType.ENTRY),

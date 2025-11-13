@@ -16,7 +16,6 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
@@ -361,15 +360,11 @@ fun SelectLocationScreen(
                         ),
                 )
             }
-
-            val filterButtonEnabled = state.contentOrNull()?.isFilterButtonEnabled == true
             val recentsCurrentlyEnabled = state.contentOrNull()?.isRecentsEnabled == true
             val disabledText = stringResource(id = R.string.recents_disabled)
             val scope = rememberCoroutineScope()
 
             SelectLocationDropdownMenu(
-                filterButtonEnabled = filterButtonEnabled,
-                onFilterClick = { onFilterClick(state.contentOrNull()?.relayListType!!) },
                 recentsEnabled = recentsCurrentlyEnabled,
                 onRecentsToggleEnableClick = {
                     if (recentsCurrentlyEnabled) {
@@ -406,46 +401,18 @@ fun SelectLocationScreen(
                     Loading()
                 }
                 is Lc.Content -> {
-                    val pagerState =
-                        rememberPagerState(
-                            initialPage = state.value.relayListType.initialPage(),
-                            pageCount = { state.value.relayListType.pageCount() },
-                        )
-
-                    if (state.value.relayListType is RelayListType.Multihop) {
-                        MultihopBar(
-                            pagerState,
-                            state.value.relayListType.multihopRelayListType,
-                            onSelectRelayList,
-                        )
-                    }
-
-                    AnimatedContent(
-                        targetState = state.value.filterChips,
-                        label = "Select location top bar",
-                    ) { filterChips ->
-                        if (filterChips.isNotEmpty()) {
-                            FilterRow(
-                                modifier =
-                                    Modifier.padding(
-                                        bottom = Dimens.smallPadding,
-                                        start = Dimens.mediumPadding,
-                                        end = Dimens.mediumPadding,
-                                    ),
-                                filters = filterChips,
-                                onRemoveOwnershipFilter = {
-                                    removeOwnershipFilter(state.value.relayListType)
-                                },
-                                onRemoveProviderFilter = {
-                                    removeProviderFilter(state.value.relayListType)
-                                },
-                            )
-                        }
-                    }
-
-                    if (state.value.multihopEnabled && state.value.filterChips.isEmpty()) {
-                        Spacer(modifier = Modifier.height(Dimens.smallPadding))
-                    }
+                    SelectionContainer(
+                        progress = expandProgress.value,
+                        relayListType = state.value.relayListType,
+                        filterChips = state.value.filterChips,
+                        entrySelection = state.value.entrySelection,
+                        exitSelection = state.value.exitSelection,
+                        error = state.value.tunnelErrorStateCause,
+                        onSelectRelayList = onSelectRelayList,
+                        onFilterClick = onFilterClick,
+                        removeOwnershipFilter = removeOwnershipFilter,
+                        removeProviderFilter = removeProviderFilter,
+                    )
 
                     RelayLists(
                         pagerState,
@@ -468,8 +435,6 @@ fun SelectLocationScreen(
 
 @Composable
 private fun SelectLocationDropdownMenu(
-    filterButtonEnabled: Boolean,
-    onFilterClick: () -> Unit,
     recentsEnabled: Boolean,
     onRecentsToggleEnableClick: () -> Unit,
     onRefreshRelayList: () -> Unit,
@@ -505,17 +470,6 @@ private fun SelectLocationDropdownMenu(
                 disabledLeadingIconColor =
                     MaterialTheme.colorScheme.onPrimary.copy(alpha = AlphaDisabled),
             )
-
-        DropdownMenuItem(
-            text = { Text(text = stringResource(R.string.filter)) },
-            onClick = {
-                showMenu = false
-                onFilterClick()
-            },
-            enabled = filterButtonEnabled,
-            colors = colors,
-            leadingIcon = { Icon(Icons.Filled.FilterList, contentDescription = null) },
-        )
 
         DropdownMenuItem(
             text = { Text(text = stringResource(recentsItemTextId)) },
@@ -636,6 +590,105 @@ private fun RelayLists(
             onEditCustomLists = onEditCustomLists,
             onUpdateBottomSheetState = onUpdateBottomSheetState,
         )
+    }
+}
+
+@OptIn(ExperimentalMotionApi::class)
+@Suppress("LongMethod")
+@Composable
+private fun SelectionContainer(
+    progress: Float, // 0 - 1
+    relayListType: RelayListType,
+    entrySelection: String?,
+    exitSelection: String?,
+    error: ErrorStateCause?,
+    filterChips: Map<RelayListType, List<FilterChip>>,
+    onSelectRelayList: (MultihopRelayListType) -> Unit,
+    onFilterClick: () -> Unit,
+    removeOwnershipFilter: () -> Unit,
+    removeProviderFilter: () -> Unit,
+) {
+    Column {
+        AnimatedContent(
+            relayListType is RelayListType.Single,
+            modifier = Modifier.padding(horizontal = Dimens.mediumPadding),
+        ) {
+            if (it) {
+                Singlehop(
+                    exitLocation = exitSelection ?: stringResource(R.string.any),
+                    errorText = error.errorText(RelayListType.Single),
+                    filters = filterChips[RelayListType.Single]?.size ?: 0,
+                    onFilterClick = { onFilterClick() },
+                    expandProgress = progress,
+                )
+            } else {
+                MultihopSelector(
+                    exitSelected =
+                        (relayListType as? RelayListType.Multihop)?.multihopRelayListType ==
+                            MultihopRelayListType.EXIT,
+                    exitLocation = exitSelection ?: stringResource(R.string.any),
+                    exitErrorText =
+                        error.errorText(RelayListType.Multihop(MultihopRelayListType.EXIT)),
+                    exitFilters =
+                        filterChips[RelayListType.Multihop(MultihopRelayListType.EXIT)]?.size ?: 0,
+                    onExitClick = { onSelectRelayList(MultihopRelayListType.EXIT) },
+                    onExitFilterClick = { onFilterClick() },
+                    entryLocation = entrySelection ?: stringResource(R.string.any),
+                    entryErrorText =
+                        error.errorText(RelayListType.Multihop(MultihopRelayListType.ENTRY)),
+                    entryFilters =
+                        filterChips[RelayListType.Multihop(MultihopRelayListType.ENTRY)]?.size ?: 0,
+                    onEntryClick = { onSelectRelayList(MultihopRelayListType.ENTRY) },
+                    onEntryFilterClick = { onFilterClick() },
+                    expandProgress = progress,
+                )
+            }
+        }
+
+        val keyFilters = "filters"
+        val scene = MotionScene {
+            val expandSet =
+                constraintSet("expanded") {
+                    val filters = createRefFor(keyFilters)
+                    constrain(filters) {
+                        centerTo(parent)
+                        visibility = Visibility.Visible
+                    }
+                }
+
+            val collapseSet =
+                constraintSet("collapsed") {
+                    val filters = createRefFor(keyFilters)
+                    constrain(filters) {
+                        linkTo(start = parent.start, end = parent.end)
+                        bottom.linkTo(parent.top)
+                        visibility = Visibility.Gone
+                    }
+                }
+
+            defaultTransition(collapseSet, expandSet) {}
+        }
+        MotionLayout(
+            modifier =
+                Modifier.padding(
+                    bottom = Dimens.smallPadding,
+                    start = Dimens.mediumPadding,
+                    end = Dimens.mediumPadding,
+                ),
+            motionScene = scene,
+            progress = progress,
+        ) {
+            AnimatedContent(
+                relayListType,
+                Modifier.animateContentSize().layoutId(keyFilters).alpha(progress),
+            ) {
+                FilterRow(
+                    filters = filterChips[it] ?: emptyList(),
+                    onRemoveOwnershipFilter = { removeOwnershipFilter() },
+                    onRemoveProviderFilter = { removeProviderFilter() },
+                )
+            }
+        }
     }
 }
 
