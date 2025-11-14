@@ -1,5 +1,3 @@
-import styled from 'styled-components';
-
 import { messages } from '../../../../shared/gettext';
 import {
   AnimateMapSetting,
@@ -8,27 +6,16 @@ import {
   StartMinimizedSetting,
   UnpinnedWindowSetting,
 } from '../../../features/client/components';
+import { FlexColumn } from '../../../lib/components/flex-column';
 import { useHistory } from '../../../lib/history';
 import { useSelector } from '../../../redux/store';
 import { AppNavigationHeader } from '../..';
 import { BackAction } from '../../KeyboardNavigation';
-import {
-  Layout,
-  SettingsContainer,
-  SettingsContent,
-  SettingsGroup,
-  SettingsStack,
-} from '../../Layout';
+import { Layout, SettingsContainer } from '../../Layout';
 import { NavigationContainer } from '../../NavigationContainer';
 import { NavigationScrollbars } from '../../NavigationScrollbars';
 import SettingsHeader, { HeaderTitle } from '../../SettingsHeader';
 import { LanguageListItem } from './components';
-
-const StyledAnimateMapCellGroup = styled(SettingsGroup)({
-  '@media (prefers-reduced-motion: reduce)': {
-    display: 'none',
-  },
-});
 
 export function UserInterfaceSettingsView() {
   const { pop } = useHistory();
@@ -53,37 +40,19 @@ export function UserInterfaceSettingsView() {
                 </HeaderTitle>
               </SettingsHeader>
 
-              <SettingsContent>
-                <SettingsStack>
-                  <SettingsGroup>
-                    <NotificationsSetting />
-                  </SettingsGroup>
-                  <SettingsGroup>
-                    <MonochromaticTrayIconSetting />
-                  </SettingsGroup>
+              <FlexColumn gap="medium">
+                <NotificationsSetting />
+                <MonochromaticTrayIconSetting />
+                <LanguageListItem />
 
-                  <SettingsGroup>
-                    <LanguageListItem />
-                  </SettingsGroup>
+                {(window.env.platform === 'win32' ||
+                  (window.env.platform === 'darwin' && window.env.development)) && (
+                  <UnpinnedWindowSetting />
+                )}
 
-                  {(window.env.platform === 'win32' ||
-                    (window.env.platform === 'darwin' && window.env.development)) && (
-                    <SettingsGroup>
-                      <UnpinnedWindowSetting />
-                    </SettingsGroup>
-                  )}
-
-                  {unpinnedWindow && (
-                    <SettingsGroup>
-                      <StartMinimizedSetting />
-                    </SettingsGroup>
-                  )}
-
-                  <StyledAnimateMapCellGroup>
-                    <AnimateMapSetting />
-                  </StyledAnimateMapCellGroup>
-                </SettingsStack>
-              </SettingsContent>
+                {unpinnedWindow && <StartMinimizedSetting />}
+                <AnimateMapSetting />
+              </FlexColumn>
             </NavigationScrollbars>
           </NavigationContainer>
         </SettingsContainer>
