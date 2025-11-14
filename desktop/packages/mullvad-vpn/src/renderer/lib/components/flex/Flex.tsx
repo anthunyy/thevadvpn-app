@@ -16,7 +16,6 @@ export type FlexProps = LayoutProps &
     flexBasis?: React.CSSProperties['flexBasis'];
     flexWrap?: React.CSSProperties['flexWrap'];
     alignSelf?: React.CSSProperties['alignSelf'];
-    children?: React.ReactNode;
   };
 
 const StyledFlex = styled(Layout)<TransientProps<FlexProps>>(({
