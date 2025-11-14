@@ -8,7 +8,6 @@ import { Layout, LayoutProps } from '../layout';
 export type FlexProps = LayoutProps &
   React.ComponentPropsWithRef<'div'> & {
     gap?: Spacings;
-    flex?: React.CSSProperties['flex'];
     flexDirection?: React.CSSProperties['flexDirection'];
     alignItems?: React.CSSProperties['alignItems'];
     justifyContent?: React.CSSProperties['justifyContent'];
@@ -22,7 +21,6 @@ export type FlexProps = LayoutProps &
 
 const StyledFlex = styled(Layout)<TransientProps<FlexProps>>(({
   $gap: gapProp,
-  $flex,
   $flexDirection,
   $alignItems,
   $justifyContent,
@@ -36,7 +34,6 @@ const StyledFlex = styled(Layout)<TransientProps<FlexProps>>(({
   return css`
     display: flex;
     gap: ${$gap};
-    flex: ${$flex};
     flex-direction: ${$flexDirection};
     align-items: ${$alignItems};
     justify-content: ${$justifyContent};
@@ -50,7 +47,6 @@ const StyledFlex = styled(Layout)<TransientProps<FlexProps>>(({
 
 export function Flex({
   gap,
-  flex,
   flexDirection,
   alignItems,
   justifyContent,
@@ -64,7 +60,6 @@ export function Flex({
   return (
     <StyledFlex
       $gap={gap}
-      $flex={flex}
       $flexDirection={flexDirection}
       $alignItems={alignItems}
       $justifyContent={justifyContent}
