@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { Ownership } from '../../shared/daemon-rpc-types';
 import { messages } from '../../shared/gettext';
 import { Button, Icon } from '../lib/components';
+import { View } from '../lib/components/view';
 import { useRelaySettingsUpdater } from '../lib/constraint-updater';
 import { filterLocations, filterLocationsByEndPointType } from '../lib/filter-locations';
 import { colors } from '../lib/foundations';
@@ -18,7 +19,6 @@ import Selector from './cell/Selector';
 import { normalText } from './common-styles';
 import { FilterAccordion } from './FilterAccordion';
 import { BackAction } from './KeyboardNavigation';
-import { Footer, Layout, SettingsContainer } from './Layout';
 import { NavigationContainer } from './NavigationContainer';
 import { NavigationScrollbars } from './NavigationScrollbars';
 
@@ -69,10 +69,10 @@ export default function Filter() {
   }, [formattedProviderList, ownership, history, relaySettingsUpdater]);
 
   return (
-    <BackAction action={history.pop}>
-      <Layout>
-        <SettingsContainer>
-          <NavigationContainer>
+    <View backgroundColor="darkBlue">
+      <BackAction action={history.pop}>
+        <NavigationContainer>
+          <View.Content>
             <AppNavigationHeader
               title={
                 // TRANSLATORS: Title label in navigation bar
@@ -92,18 +92,18 @@ export default function Filter() {
                 setProviders={setProviders}
               />
             </StyledNavigationScrollbars>
-            <Footer>
+            <View.Container indent="medium">
               <Button
                 variant="success"
                 disabled={Object.values(providers).every((provider) => !provider)}
                 onClick={onApply}>
                 <Button.Text>{messages.gettext('Apply')}</Button.Text>
               </Button>
-            </Footer>
-          </NavigationContainer>
-        </SettingsContainer>
-      </Layout>
-    </BackAction>
+            </View.Container>
+          </View.Content>
+        </NavigationContainer>
+      </BackAction>
+    </View>
   );
 }
 
