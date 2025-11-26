@@ -40,4 +40,17 @@ class CustomListsDataSource: LocationDataSourceProtocol {
             return listNode
         }
     }
+
+    func node(by selectedRelays: UserSelectedRelays) -> LocationNode? {
+        // Look for a matching custom list node.
+        if let customListSelection = selectedRelays.customListSelection {
+            return
+                nodes
+                .map({ $0 as! CustomListLocationNode })
+                .first { node in
+                    node.customList.id == customListSelection.listId
+                }
+        }
+        return nil
+    }
 }

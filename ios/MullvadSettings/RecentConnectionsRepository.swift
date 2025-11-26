@@ -1,3 +1,4 @@
+import Combine
 //
 //  RecentConnectionsRepository.swift
 //  MullvadVPN
@@ -18,44 +19,67 @@ public enum RecentConnectionsRepositoryError: LocalizedError, Hashable {
     }
 }
 
-final class RecentConnectionsRepository: RecentConnectionsRepositoryProtocol {
+final public class RecentConnectionsRepository: RecentConnectionsRepositoryProtocol {
     private let store: SettingsStore
     private let maxLimit: UInt
+    private let recentConnectionsSubject: PassthroughSubject<RecentConnections, Error> = .init()
 
     private let settingsParser: SettingsParser = {
         SettingsParser(decoder: JSONDecoder(), encoder: JSONEncoder())
     }()
 
-    init(store: SettingsStore, maxLimit: UInt = 50) {
+    public var recentConnectionsPublisher: AnyPublisher<RecentConnections, Error> {
+        recentConnectionsSubject.eraseToAnyPublisher()
+    }
+
+    public init(store: SettingsStore, maxLimit: UInt = 50) {
         self.store = store
         self.maxLimit = maxLimit
     }
 
-    func setRecentsEnabled(_ isEnabled: Bool) throws {
-        // Clear all recents whenever the recents feature status changes.
-        try write(RecentConnections(isEnabled: isEnabled, entryLocations: [], exitLocations: []))
+    public func setRecentsEnabled(_ isEnabled: Bool) {
+        do {
+            // Clear all recents whenever the recents feature status changes.
+            let value = RecentConnections(isEnabled: isEnabled, entryLocations: [], exitLocations: [])
+            try write(value)
+            recentConnectionsSubject.send(value)
+        } catch {
+            recentConnectionsSubject.send(completion: .failure(error))
+        }
     }
 
-    func add(_ location: UserSelectedRelays, as type: RecentLocationType) throws {
-        let current = try read()
-        guard current.isEnabled else { throw RecentConnectionsRepositoryError.recentsDisabled }
-        var currentList = current[keyPath: keyPath(for: type)]
-        if let idx = currentList.firstIndex(of: location) { currentList.remove(at: idx) }
-        currentList.insert(location, at: 0)
-        currentList = Array(currentList.prefix(Int(maxLimit)))
+    public func add(_ location: UserSelectedRelays, as type: RecentLocationType) {
 
-        let new =
-            (type == .entry)
-            ? RecentConnections(
-                isEnabled: current.isEnabled, entryLocations: currentList, exitLocations: current.exitLocations)
-            : RecentConnections(
-                isEnabled: current.isEnabled, entryLocations: current.entryLocations, exitLocations: currentList)
+        do {
+            let current = try read()
+            guard current.isEnabled else { throw RecentConnectionsRepositoryError.recentsDisabled }
+            var currentList = current[keyPath: keyPath(for: type)]
+            if let idx = currentList.firstIndex(of: location) { currentList.remove(at: idx) }
+            currentList.insert(location, at: 0)
+            currentList = Array(currentList.prefix(Int(maxLimit)))
 
-        try write(new)
+            let new =
+                (type == .entry)
+                ? RecentConnections(
+                    isEnabled: current.isEnabled, entryLocations: currentList, exitLocations: current.exitLocations)
+                : RecentConnections(
+                    isEnabled: current.isEnabled, entryLocations: current.entryLocations, exitLocations: currentList)
+
+            try write(new)
+            recentConnectionsSubject.send(new)
+        } catch {
+            recentConnectionsSubject.send(completion: .failure(error))
+        }
+
     }
 
-    func all() throws -> RecentConnections {
-        try read()
+    public func initiate() {
+        do {
+            let value = try read()
+            recentConnectionsSubject.send(value)
+        } catch {
+            recentConnectionsSubject.send(completion: .failure(error))
+        }
     }
 }
 

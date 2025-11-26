@@ -51,9 +51,7 @@ extension LocationDataSourceProtocol {
     }
 
     func setSelectedNode(selectedRelays: UserSelectedRelays?) {
-        nodes.forEachNode { node in
-            node.isSelected = false
-        }
+        resetSelection()
         guard let selectedRelays else { return }
         let selectedNode = node(by: selectedRelays)
         selectedNode?.isSelected = true
@@ -64,6 +62,12 @@ extension LocationDataSourceProtocol {
             if node.isSelected {
                 node.forEachAncestor { $0.showsChildren = true }
             }
+        }
+    }
+
+    func resetSelection() {
+        nodes.forEachNode { node in
+            node.isSelected = false
         }
     }
 
