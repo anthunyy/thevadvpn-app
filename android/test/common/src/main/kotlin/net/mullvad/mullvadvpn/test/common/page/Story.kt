@@ -59,6 +59,16 @@ fun ConnectPage.enableLocalNetworkSharingStory() {
     uiDevice.pressBackTwice()
 }
 
+fun ConnectPage.enableDeviceIpv6Story() {
+    clickSettings()
+    on<SettingsPage> { clickVpnSettings() }
+    on<VpnSettingsPage> {
+        scrollUntilDeviceIpVersionCell()
+        clickDeviceIpIpv6Cell()
+    }
+    uiDevice.pressBackTwice()
+}
+
 fun ConnectPage.enableWireGuardCustomPort(port: Int) {
     if (port != 51820 && port != 53) {
         error("Port needs to be one of the predefined ports")
