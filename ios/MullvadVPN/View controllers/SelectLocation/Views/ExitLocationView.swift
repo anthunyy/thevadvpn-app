@@ -95,7 +95,7 @@ struct ExitLocationView<ViewModel: SelectLocationViewModel>: View {
     func recentsSection(isShowingRecentsSection: Bool) -> some View {
         MullvadListSectionHeader(title: "Recents")
         if isShowingRecentsSection {
-            LocationsListView(
+            RecentLocationsListView(
                 locations: $context.recents,
                 multihopContext: viewModel.multihopContext,
             ) { location in

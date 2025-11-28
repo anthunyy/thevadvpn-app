@@ -9,12 +9,10 @@
 import Combine
 import MullvadTypes
 
-public enum RecentLocationType: CaseIterable {
-    case entry, exit
-}
 public protocol RecentConnectionsRepositoryProtocol {
     var recentConnectionsPublisher: AnyPublisher<RecentConnections, Error> { get }
-    func setRecentsEnabled(_ isEnabled: Bool)
-    func add(_ location: UserSelectedRelays, as: RecentLocationType)
+    func disable()
+    func enable(_ selectedEntryRelays: UserSelectedRelays?, selectedExitRelays: UserSelectedRelays)
+    func add(_ selectedEntryRelays: UserSelectedRelays?, selectedExitRelays: UserSelectedRelays)
     func initiate()
 }

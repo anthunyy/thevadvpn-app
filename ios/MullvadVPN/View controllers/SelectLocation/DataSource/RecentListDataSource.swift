@@ -25,9 +25,8 @@ class RecentListDataSource: LocationDataSourceProtocol {
     ) {
         self.nodes = Array(
             recents.map({
-                let node = finder.node(
-                    in: LocationNodes(allLocationsNodes: allLocationNodes, customListsNodes: customListNodes), for: $0)?
-                    .copy()
+                let node =
+                    (finder.node(in: customListNodes, for: $0) ?? finder.node(in: allLocationNodes, for: $0))?.copy()
                 node?.showsChildren = false
                 return node
             })

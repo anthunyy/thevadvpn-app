@@ -8,20 +8,15 @@ import Combine
 //
 import MullvadTypes
 
-struct LocationNodes {
-    let allLocationsNodes: [LocationNode]
-    let customListsNodes: [LocationNode]
-}
-
 protocol UserSelectedLocationFinder {
-    func node(in source: LocationNodes, for selectedRelays: UserSelectedRelays) -> LocationNode?
+    func node(in source: [LocationNode], for selectedRelays: UserSelectedRelays) -> LocationNode?
 }
 
 struct UserSelectedLocationFinding: UserSelectedLocationFinder {
 
-    func node(in source: LocationNodes, for selectedRelays: UserSelectedRelays) -> LocationNode? {
-        customListNode(rootNode: RootLocationNode(children: source.customListsNodes), selectedRelays: selectedRelays)
-            ?? relayNode(rootNode: RootLocationNode(children: source.allLocationsNodes), selectedRelays: selectedRelays)
+    func node(in source: [LocationNode], for selectedRelays: UserSelectedRelays) -> LocationNode? {
+        customListNode(rootNode: RootLocationNode(children: source), selectedRelays: selectedRelays)
+            ?? relayNode(rootNode: RootLocationNode(children: source), selectedRelays: selectedRelays)
     }
 
     private func customListNode(rootNode: RootLocationNode, selectedRelays: UserSelectedRelays)

@@ -37,10 +37,23 @@ final public class RecentConnectionsRepository: RecentConnectionsRepositoryProto
         self.maxLimit = maxLimit
     }
 
-    public func setRecentsEnabled(_ isEnabled: Bool) {
+    public func disable() {
         do {
             // Clear all recents whenever the recents feature status changes.
-            let value = RecentConnections(isEnabled: isEnabled, entryLocations: [], exitLocations: [])
+            let value = RecentConnections(isEnabled: false, entryLocations: [], exitLocations: [])
+            try write(value)
+            recentConnectionsSubject.send(value)
+        } catch {
+            recentConnectionsSubject.send(completion: .failure(error))
+        }
+    }
+    public func enable(_ selectedEntryRelays: UserSelectedRelays?, selectedExitRelays: UserSelectedRelays) {
+        do {
+            // Enable recents with the last selected locations for entry and exit.
+            let value = RecentConnections(
+                isEnabled: true,
+                entryLocations: (selectedEntryRelays != nil) ? [selectedEntryRelays!] : [],
+                exitLocations: [selectedExitRelays])
             try write(value)
             recentConnectionsSubject.send(value)
         } catch {
@@ -48,29 +61,30 @@ final public class RecentConnectionsRepository: RecentConnectionsRepositoryProto
         }
     }
 
-    public func add(_ location: UserSelectedRelays, as type: RecentLocationType) {
-
+    public func add(_ selectedEntryRelays: UserSelectedRelays?, selectedExitRelays: UserSelectedRelays) {
         do {
             let current = try read()
             guard current.isEnabled else { throw RecentConnectionsRepositoryError.recentsDisabled }
-            var currentList = current[keyPath: keyPath(for: type)]
-            if let idx = currentList.firstIndex(of: location) { currentList.remove(at: idx) }
-            currentList.insert(location, at: 0)
-            currentList = Array(currentList.prefix(Int(maxLimit)))
 
-            let new =
-                (type == .entry)
-                ? RecentConnections(
-                    isEnabled: current.isEnabled, entryLocations: currentList, exitLocations: current.exitLocations)
-                : RecentConnections(
-                    isEnabled: current.isEnabled, entryLocations: current.entryLocations, exitLocations: currentList)
+            let insertAtZero: ([UserSelectedRelays], UserSelectedRelays?) -> [UserSelectedRelays] = {
+                (locations, location) in
+                guard let location = location else { return locations }
+                var currentLocations = locations
+                currentLocations.removeAll(where: { $0 == location })
+                currentLocations.insert(location, at: 0)
+                return Array(currentLocations.prefix(Int(self.maxLimit)))
+            }
 
+            let new = RecentConnections(
+                isEnabled: true,
+                entryLocations: insertAtZero(current.entryLocations, selectedEntryRelays),
+                exitLocations: insertAtZero(current.exitLocations, selectedExitRelays))
             try write(new)
             recentConnectionsSubject.send(new)
+
         } catch {
             recentConnectionsSubject.send(completion: .failure(error))
         }
-
     }
 
     public func initiate() {
@@ -84,13 +98,6 @@ final public class RecentConnectionsRepository: RecentConnectionsRepositoryProto
 }
 
 private extension RecentConnectionsRepository {
-    private func keyPath(for type: RecentLocationType) -> KeyPath<RecentConnections, [UserSelectedRelays]> {
-        switch type {
-        case .entry: return \.entryLocations
-        case .exit: return \.exitLocations
-        }
-    }
-
     private func read() throws -> RecentConnections {
         let data = try store.read(key: .recentConnections)
         return try settingsParser.parseUnversionedPayload(as: RecentConnections.self, from: data)

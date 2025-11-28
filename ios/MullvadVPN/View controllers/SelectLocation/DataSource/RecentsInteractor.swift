@@ -14,49 +14,70 @@ import MullvadTypes
 protocol RecentsInteractorProtocol {
     var isEnabled: Bool { get }
     func toggle()
-    func save(userSelectedRelays: UserSelectedRelays, for context: MultihopContext)
     func fetch(context: MultihopContext) -> [UserSelectedRelays]
 }
 
 class RecentsInteractor: RecentsInteractorProtocol {
-    private let tunnelManager: SettingsUpdating
     private let repository: RecentConnectionsRepositoryProtocol
+    private var selectedEntryRelays: UserSelectedRelays?
+    private var selectedExitRelays: UserSelectedRelays
     private let logger = Logger(label: "RecentsInteractor")
     private var recentConnection: RecentConnections?
     private var cancellables = Set<Combine.AnyCancellable>()
+    private var tunnelObserver: TunnelObserver!
+    private let tunnelManager: TunnelManager
 
     init(
-        tunnelManager: SettingsUpdating,
+        tunnelManager: TunnelManager,
         repository: RecentConnectionsRepositoryProtocol
     ) {
         self.tunnelManager = tunnelManager
         self.repository = repository
+        self.selectedEntryRelays = tunnelManager.settings.relayConstraints.entryLocations.value
+        self.selectedExitRelays = tunnelManager.settings.relayConstraints.exitLocations.value ?? .default
+        self.updateTunnelObserver()
         self.subscribeToRecentConnections()
-        self.repository.all()
+        self.repository.initiate()
+    }
+
+    private func updateTunnelObserver() {
+        tunnelObserver = TunnelBlockObserver(didUpdateTunnelSettings: { [weak self] _, newSettings in
+            guard let self else { return }
+            selectedEntryRelays = newSettings.relayConstraints.entryLocations.value
+            selectedExitRelays = newSettings.relayConstraints.exitLocations.value ?? .default
+            guard isEnabled else { return }
+            repository.add(selectedExitRelays, selectedExitRelays: selectedExitRelays)
+        })
+        tunnelManager.addObserver(tunnelObserver)
     }
 
     private func subscribeToRecentConnections() {
         repository
             .recentConnectionsPublisher
             .sink { [weak self] completion in
-                switch completion {
-                case .failure(let error):
-                    self?.logger.error("Failed to subscribe to recent connections: \(error)")
-                default:
-                    break
+                guard let self else { return }
+                if case .failure(let error) = completion {
+                    // Key not found: this occurs only on first use.
+                    // Initialize Recents using the user's most recent entry/exit selections by default.
+                    if (error as? KeychainError) == .itemNotFound {
+                        repository.enable(selectedEntryRelays, selectedExitRelays: selectedExitRelays)
+                    } else {
+                        logger.error("Failed to subscribe to recent connections: \(error)")
+                    }
                 }
-
             } receiveValue: { [weak self] recentConnections in
                 self?.recentConnection = recentConnections
             }.store(in: &cancellables)
     }
 
-    var isEnabled: Bool {
-        recentConnection?.isEnabled ?? true
+    private func save(_ selectedEntryRelays: UserSelectedRelays?, selectedExitRelays: UserSelectedRelays) {
+        self.selectedEntryRelays = selectedEntryRelays
+        self.selectedExitRelays = selectedExitRelays
+        repository.enable(selectedEntryRelays, selectedExitRelays: selectedExitRelays)
     }
 
-    func toggle() {
-        repository.setRecentsEnabled(!isEnabled)
+    var isEnabled: Bool {
+        recentConnection?.isEnabled ?? false
     }
 
     func fetch(context: MultihopContext) -> [UserSelectedRelays] {
@@ -68,12 +89,11 @@ class RecentsInteractor: RecentsInteractorProtocol {
         }
     }
 
-    func save(userSelectedRelays: UserSelectedRelays, for context: MultihopContext) {
-        switch context {
-        case .entry:
-            repository.add(userSelectedRelays, as: .entry)
-        case .exit:
-            repository.add(userSelectedRelays, as: .exit)
+    func toggle() {
+        if isEnabled {
+            repository.disable()
+        } else {
+            repository.enable(selectedEntryRelays, selectedExitRelays: selectedExitRelays)
         }
     }
 }

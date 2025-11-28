@@ -39,10 +39,8 @@ final class RecentConnectionsRepositoryTests {
                 recentConnections = value
             }
             .store(in: &cancellables)
-
-        repository.setRecentsEnabled(true)
-        addLocations(repository, locations: [se, de], as: .entry)
-        addLocations(repository, locations: [de], as: .exit)
+        repository.enable(se, selectedExitRelays: de)
+        repository.add(de, selectedExitRelays: se)
 
         let value = try #require(recentConnections)
         #expect(thrownError == nil)
@@ -70,9 +68,9 @@ final class RecentConnectionsRepositoryTests {
             }
             .store(in: &cancellables)
 
-        repository.setRecentsEnabled(true)
-        addLocations(repository, locations: [se, de], as: .entry)
-        addLocations(repository, locations: [de, se, nl, se], as: .exit)
+        repository.enable(se, selectedExitRelays: de)
+        repository.add(de, selectedExitRelays: se)
+        repository.add(de, selectedExitRelays: nl)
 
         let value = try #require(recentConnections)
         #expect(thrownError == nil)
@@ -101,7 +99,7 @@ final class RecentConnectionsRepositoryTests {
             }
             .store(in: &cancellables)
 
-        repository.setRecentsEnabled(false)
+        repository.disable()
 
         let value = try #require(recentConnections)
         #expect(thrownError == nil)
@@ -114,7 +112,7 @@ final class RecentConnectionsRepositoryTests {
     @Test("Fails with an error if a location is added while recents are disabled.")
     func addRecentsBeforeEnablingRecents() throws {
         let repository = makeRepository()
-        repository.setRecentsEnabled(false)
+        repository.disable()
 
         var recentConnections: RecentConnections?
         var thrownError: Error?
@@ -130,8 +128,7 @@ final class RecentConnectionsRepositoryTests {
                 recentConnections = value
             }
             .store(in: &cancellables)
-
-        addLocations(repository, locations: [se], as: .entry)
+        repository.add(nil, selectedExitRelays: se)
 
         let error = try #require(thrownError as? RecentConnectionsRepositoryError)
         #expect(error == RecentConnectionsRepositoryError.recentsDisabled)
@@ -140,13 +137,5 @@ final class RecentConnectionsRepositoryTests {
 
     private func makeRepository(max: UInt = 50) -> RecentConnectionsRepository {
         return RecentConnectionsRepository(store: InMemorySettingsStore<SettingNotFound>(), maxLimit: max)
-    }
-
-    private func addLocations(
-        _ repository: RecentConnectionsRepository, locations: [UserSelectedRelays], as type: RecentLocationType
-    ) {
-        for location in locations {
-            repository.add(location, as: type)
-        }
     }
 }
