@@ -15,16 +15,16 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-[[ $ASSUMEYES == "y" ]] || read -r -p "Are you sure you want to stop and uninstall Mullvad VPN? (y/n) "
+[[ $ASSUMEYES == "y" ]] || read -r -p "Are you sure you want to stop and uninstall Thevad VPN? (y/n) "
 if [[ $ASSUMEYES == "y" || "$REPLY" =~ [Yy]$ ]]; then
-    echo "Uninstalling Mullvad VPN ..."
+    echo "Uninstalling Thevad VPN ..."
 else
     echo "Aborting uninstall"
     exit 0
 fi
 
 echo "Stopping GUI process ..."
-sudo pkill -x "Mullvad VPN" || echo "No GUI process found"
+sudo pkill -x "Thevad VPN" || echo "No GUI process found"
 
 echo "Stopping and unloading mullvad-daemon system daemon ..."
 DAEMON_PLIST_PATH="/Library/LaunchDaemons/net.mullvad.daemon.plist"
@@ -32,8 +32,8 @@ sudo launchctl unload -w "$DAEMON_PLIST_PATH"
 sudo rm -f "$DAEMON_PLIST_PATH"
 
 echo "Resetting firewall"
-sudo /Applications/Mullvad\ VPN.app/Contents/Resources/mullvad-setup reset-firewall || echo "Failed to reset firewall"
-sudo /Applications/Mullvad\ VPN.app/Contents/Resources/mullvad-setup remove-device || echo "Failed to remove device from account"
+sudo /Applications/Thevad\ VPN.app/Contents/Resources/mullvad-setup reset-firewall || echo "Failed to reset firewall"
+sudo /Applications/Thevad\ VPN.app/Contents/Resources/mullvad-setup remove-device || echo "Failed to remove device from account"
 
 echo "Removing zsh shell completion symlink ..."
 sudo rm -f /usr/local/share/zsh/site-functions/_mullvad
@@ -47,12 +47,11 @@ echo "Removing CLI symlinks from /usr/local/bin/ ..."
 sudo rm -f /usr/local/bin/mullvad /usr/local/bin/mullvad-problem-report
 
 echo "Removing app from /Applications ..."
-sudo rm -rf /Applications/Mullvad\ VPN.app
-sudo pkgutil --forget net.mullvad.vpn || true
+sudo rm -rf /Applications/Thevad\ VPN.app
+sudo pkgutil --forget net.thevad.vpn || true
 
 echo "Removing login item ..."
-osascript -e 'tell application "System Events" to delete login item "Mullvad VPN"' 2>/dev/null || true
-
+osascript -e 'tell application "System Events" to delete login item "Thevad VPN"' 2>/dev/null || true
 [[ $ASSUMEYES == "y" ]] || read -r -p "Do you want to delete the log and cache files the app has created? (y/n) "
 if [[ $ASSUMEYES == "y" || "$REPLY" =~ [Yy]$ ]]; then
     sudo rm -rf /var/log/mullvad-vpn /var/root/Library/Caches/mullvad-vpn /Library/Caches/mullvad-vpn
@@ -65,11 +64,11 @@ if [[ $ASSUMEYES == "y" || "$REPLY" =~ [Yy]$ ]]; then
     done
 fi
 
-[[ $ASSUMEYES == "y" ]] || read -r -p "Do you want to delete the Mullvad VPN settings? (y/n) "
+[[ $ASSUMEYES == "y" ]] || read -r -p "Do you want to delete the Thevad VPN settings? (y/n) "
 if [[ $ASSUMEYES == "y" || "$REPLY" =~ [Yy]$ ]]; then
     sudo rm -rf /etc/mullvad-vpn
     for user in /Users/*; do
-        user_settings_dir="$user/Library/Application Support/Mullvad VPN"
+        user_settings_dir="$user/Library/Application Support/Thevad VPN"
         if [[ -d "$user_settings_dir" ]]; then
             echo "Deleting GUI settings at $user_settings_dir"
             sudo rm -rf "$user_settings_dir"

@@ -102,7 +102,7 @@ async fn replace_openvpn_certificate(rpc: &ServiceClient) -> Result<(), Error> {
     let dest_dir = match TEST_CONFIG.os {
         Os::Windows => "C:\\Program Files\\Mullvad VPN\\resources",
         Os::Linux => "/opt/Mullvad VPN/resources",
-        Os::Macos => "/Applications/Mullvad VPN.app/Contents/Resources",
+        Os::Macos => "/Applications/Thevad VPN.app/Contents/Resources",
     };
 
     let dest = Path::new(dest_dir)

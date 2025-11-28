@@ -33,7 +33,7 @@ BUILD_DIR="$SCRIPT_DIR/build"
 DIST_DIR="$SCRIPT_DIR/../dist"
 
 BUNDLE_NAME="MullvadVPNLoader"
-BUNDLE_ID="net.mullvad.$BUNDLE_NAME"
+BUNDLE_ID="net.thevad.$BUNDLE_NAME"
 
 FILENAME="Install Mullvad VPN"
 

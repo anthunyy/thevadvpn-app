@@ -40,7 +40,7 @@ pub async fn uninstall_app(env: HashMap<String, String>) -> Result<()> {
     let mut cmd = Command::new("zsh");
     cmd.arg("-c");
     cmd.arg(
-        "\"/Applications/Mullvad VPN.app/Contents/Resources/uninstall.sh\" << EOF
+        "\"/Applications/Thevad VPN.app/Contents/Resources/uninstall.sh\" << EOF
 y
 y
 y

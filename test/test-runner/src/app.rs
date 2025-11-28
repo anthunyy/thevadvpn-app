@@ -93,7 +93,7 @@ pub fn find_traces() -> Result<Vec<AppTrace>, Error> {
 
     let caches = find_cache_traces()?;
     let traces = vec![
-        Path::new(r"/Applications/Mullvad VPN.app/"),
+        Path::new(r"/Applications/Thevad VPN.app/"),
         Path::new(r"/var/log/mullvad-vpn/"),
         &caches,
         // management interface socket

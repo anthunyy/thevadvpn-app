@@ -22,9 +22,9 @@ function getOptionValue(option) {
 
 function newConfig() {
   return {
-    appId: 'net.mullvad.vpn',
+    appId: 'net.thevad.vpn',
     copyright: 'Mullvad VPN AB',
-    productName: 'Mullvad VPN',
+    productName: 'Thevad VPN',
     publish: null,
     asar: true,
     compression: noCompression ? 'store' : 'normal',
@@ -87,7 +87,7 @@ function newConfig() {
       },
       x64ArchFiles:
         'Contents/Resources/app.asar.unpacked/node_modules/nseventforwarder/dist/*/index.node',
-      artifactName: 'MullvadVPN-${version}.${ext}',
+      artifactName: 'ThevadVPN-${version}.${ext}',
       category: 'public.app-category.tools',
       icon: distAssets('icon-macos.icns'),
       notarize: shouldNotarize,

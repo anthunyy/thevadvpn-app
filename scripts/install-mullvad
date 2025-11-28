@@ -27,7 +27,7 @@ gpg_cmd=$(command -v gpg2 || command -v gpg)
 # Detect operating system and package manager
 if [[ "$(uname -s)" == "Darwin" ]] && command -v installer; then
     pkg_manager="macOS"
-    pkg_filename="MullvadVPN-${version}.pkg"
+    pkg_filename="ThevadVPN-${version}.pkg"
 elif command -v apt > /dev/null 2>&1; then
     pkg_manager=apt
     pkg_filename="MullvadVPN-${version}_amd64.deb"

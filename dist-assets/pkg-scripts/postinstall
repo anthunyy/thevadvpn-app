@@ -8,7 +8,7 @@ INSTALL_DIR=$2
 # correct install dir and once with an incorrect one. This guard prevents running the script when
 # called the second time. This can be reverted when the following issue has been fixed:
 # https://github.com/electron-userland/electron-builder/issues/8166
-if [[ $INSTALL_DIR == *"Mullvad VPN.app" ]]; then
+if [[ $INSTALL_DIR == *"Thevad VPN.app" ]]; then
     exit 0
 fi
 
@@ -33,7 +33,7 @@ DAEMON_PLIST=$(cat <<-EOM
 
                 <key>ProgramArguments</key>
                 <array>
-                        <string>$INSTALL_DIR/Mullvad VPN.app/Contents/Resources/mullvad-daemon</string>
+                        <string>$INSTALL_DIR/Thevad VPN.app/Contents/Resources/mullvad-daemon</string>
                         <string>-v</string>
                 </array>
 
@@ -53,7 +53,7 @@ DAEMON_PLIST=$(cat <<-EOM
                 </dict>
 
                 <key>AssociatedBundleIdentifiers</key>
-                <string>net.mullvad.vpn</string>
+                <string>net.thevad.vpn</string>
 
                 <key>StandardErrorPath</key>
                 <string>$LOG_DIR/stderr.log</string>
@@ -76,7 +76,7 @@ cp "$LOG_DIR/daemon.log" "$LOG_DIR/old-install-daemon.log" \
 # For compatibility with versions older than 2022.5, kill the GUI after the
 # upgrade. We now do this in preinstall instead. This code can be removed when
 # we drop support for app versions older than 2022.5.
-pkill -x "Mullvad VPN" || true
+pkill -x "Thevad VPN" || true
 sleep 1
 
 echo "$DAEMON_PLIST" > $DAEMON_PLIST_PATH
@@ -84,12 +84,11 @@ chmod 644 $DAEMON_PLIST_PATH
 launchctl load -w $DAEMON_PLIST_PATH
 
 mkdir -p /usr/local/bin
-ln -sf "$INSTALL_DIR/Mullvad VPN.app/Contents/Resources/mullvad" /usr/local/bin/mullvad
-ln -sf "$INSTALL_DIR/Mullvad VPN.app/Contents/Resources/mullvad-problem-report" /usr/local/bin/mullvad-problem-report
+ln -sf "$INSTALL_DIR/Thevad VPN.app/Contents/Resources/mullvad" /usr/local/bin/mullvad
+ln -sf "$INSTALL_DIR/Thevad VPN.app/Contents/Resources/mullvad-problem-report" /usr/local/bin/mullvad-problem-report
 
 mkdir -p "$ZSH_COMPLETIONS_DIR"
-ln -sf "$INSTALL_DIR/Mullvad VPN.app/Contents/Resources/_mullvad" "$ZSH_COMPLETIONS_DIR/_mullvad"
-
+ln -sf "$INSTALL_DIR/Thevad VPN.app/Contents/Resources/_mullvad" "$ZSH_COMPLETIONS_DIR/_mullvad"
 if [[ -d "$FISH_COMPLETIONS_DIR" ]]; then
-    ln -sf "$INSTALL_DIR/Mullvad VPN.app/Contents/Resources/mullvad.fish" "$FISH_COMPLETIONS_DIR/mullvad.fish"
+    ln -sf "$INSTALL_DIR/Thevad VPN.app/Contents/Resources/mullvad.fish" "$FISH_COMPLETIONS_DIR/mullvad.fish"
 fi

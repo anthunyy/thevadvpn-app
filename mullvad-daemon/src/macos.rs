@@ -59,7 +59,7 @@ pub async fn handle_app_bundle_removal(
     const UNINSTALL_SCRIPT_PATH: &str = "/var/root/uninstall_mullvad.sh";
 
     /// Mullvad app install path
-    const APP_PATH: &str = "/Applications/Mullvad VPN.app";
+    const APP_PATH: &str = "/Applications/Thevad VPN.app";
 
     let daemon_path = std::env::current_exe().context("Failed to get daemon path")?;
 
