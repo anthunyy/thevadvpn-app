@@ -13,7 +13,7 @@ public struct RecentConnections: Codable, Sendable, Equatable {
     public let exitLocations: [UserSelectedRelays]
 
     public init(
-        isEnabled: Bool,
+        isEnabled: Bool = true,
         entryLocations: [UserSelectedRelays] = [],
         exitLocations: [UserSelectedRelays] = []
     ) {

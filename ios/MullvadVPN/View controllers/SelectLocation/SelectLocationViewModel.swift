@@ -106,6 +106,7 @@ class SelectLocationViewModelImpl: SelectLocationViewModel {
         // view. If there is, help the user by showing the entry instead of the exit view.
         isMultihopEnabled = tunnelManager.settings.tunnelMultihopState.isEnabled
 
+        // Sync the UI with the current Recents enabled state.
         isRecentsEnabled = recentsInteractor.isEnabled
 
         if isMultihopEnabled {
@@ -307,10 +308,15 @@ class SelectLocationViewModelImpl: SelectLocationViewModel {
     }
 
     private func updateConnectedLocations(_ status: TunnelStatus) {
+        exitRecentsDataSource
+            .setConnectedRelay(hostname: status.state.relays?.exit.hostname)
         exitLocationsDataSource
             .setConnectedRelay(hostname: status.state.relays?.exit.hostname)
         exitCustomListsDataSource
             .setConnectedRelay(hostname: status.state.relays?.exit.hostname)
+
+        entryRecentsDataSource
+            .setConnectedRelay(hostname: status.state.relays?.entry?.hostname)
         entryLocationsDataSource
             .setConnectedRelay(hostname: status.state.relays?.entry?.hostname)
         entryCustomListsDataSource
@@ -393,6 +399,9 @@ class SelectLocationViewModelImpl: SelectLocationViewModel {
     }
 
     private func expandSelectedLocation() {
+        // Only expand the selection when Recents is disabled.
+        // Per spec, Recents mode does not allow expansion.
+        guard !isRecentsEnabled else { return }
         exitLocationsDataSource
             .expandSelection()
         exitCustomListsDataSource

@@ -46,7 +46,7 @@ class RecentsInteractor: RecentsInteractorProtocol {
             selectedEntryRelays = newSettings.relayConstraints.entryLocations.value
             selectedExitRelays = newSettings.relayConstraints.exitLocations.value ?? .default
             guard isEnabled else { return }
-            repository.add(selectedExitRelays, selectedExitRelays: selectedExitRelays)
+            repository.add(selectedEntryRelays, selectedExitRelays: selectedExitRelays)
         })
         tunnelManager.addObserver(tunnelObserver)
     }

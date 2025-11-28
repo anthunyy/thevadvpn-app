@@ -51,7 +51,6 @@ final public class RecentConnectionsRepository: RecentConnectionsRepositoryProto
         do {
             // Enable recents with the last selected locations for entry and exit.
             let value = RecentConnections(
-                isEnabled: true,
                 entryLocations: (selectedEntryRelays != nil) ? [selectedEntryRelays!] : [],
                 exitLocations: [selectedExitRelays])
             try write(value)
@@ -76,7 +75,6 @@ final public class RecentConnectionsRepository: RecentConnectionsRepositoryProto
             }
 
             let new = RecentConnections(
-                isEnabled: true,
                 entryLocations: insertAtZero(current.entryLocations, selectedEntryRelays),
                 exitLocations: insertAtZero(current.exitLocations, selectedExitRelays))
             try write(new)
