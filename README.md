@@ -9,7 +9,7 @@ This changes some identifiers for the Mac release of the Mullvad VPN Desktop app
 
 ```bash
 git clone https://github.com/anthunyy/thevadvpn-app.git
-cd thevad-app
+cd thevadvpn-app
 git checkout 2025.13-thevad_edition
 git submodule update --init --recursive
 ```
